@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1aca23268ddc41b42a663c071a549e4e, type: 3}
+  m_Name: PlanetSettings
+  m_EditorClassIdentifier: Assembly-CSharp::ProceduralPlanet.PlanetSettings
+  worldName: PrototypeWorld
+  seed: 12345
+  radius: 100
+  baseResolution: 32
+  maxTerrainHeight: 25
+  previewMaterial: {fileID: 0}
+  generateColliders: 1
+  patchResolution: 16
+  preloadRing: 1
+  streamDistance: 500
+  showPatchBounds: 1
+  showPatchIds: 0

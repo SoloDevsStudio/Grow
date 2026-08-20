@@ -7,6 +7,7 @@ namespace ProceduralPlanet.Editor
     public class WorldCreatorWindow : EditorWindow
     {
         private PlanetSettings settings;
+        private ProceduralPlanetRoot planetRoot;
         private UnityEditor.Editor settingsEditor;
 
         [MenuItem("Tools/Procedural Planet/World Creator")]
@@ -14,7 +15,7 @@ namespace ProceduralPlanet.Editor
         {
             var window = GetWindow<WorldCreatorWindow>();
             window.titleContent = new GUIContent("World Creator");
-            window.minSize = new Vector2(420f, 500f);
+            window.minSize = new Vector2(440f, 620f);
             window.Show();
         }
 
@@ -30,56 +31,85 @@ namespace ProceduralPlanet.Editor
                 typeof(PlanetSettings),
                 false);
 
-            EditorGUILayout.Space(8);
-
             using (new EditorGUILayout.HorizontalScope())
             {
-                if (GUILayout.Button("Create Settings Asset", GUILayout.Height(30)))
-                {
+                if (GUILayout.Button("Create Settings Asset", GUILayout.Height(28)))
                     CreateSettingsAsset();
-                }
 
                 GUI.enabled = settings != null;
-                if (GUILayout.Button("Ping Asset", GUILayout.Height(30)))
+                if (GUILayout.Button("Ping Settings", GUILayout.Height(28)))
                 {
-                    EditorGUIUtility.PingObject(settings);
                     Selection.activeObject = settings;
+                    EditorGUIUtility.PingObject(settings);
                 }
                 GUI.enabled = true;
             }
 
-            EditorGUILayout.Space(12);
+            EditorGUILayout.Space(10);
 
-            if (settings == null)
+            if (settings != null)
+                DrawSettingsInspector();
+            else
+                EditorGUILayout.HelpBox("Create or assign PlanetSettings first.", MessageType.Info);
+
+            EditorGUILayout.Space(12);
+            EditorGUILayout.LabelField("Planet Scene Object", EditorStyles.boldLabel);
+
+            planetRoot = (ProceduralPlanetRoot)EditorGUILayout.ObjectField(
+                "Planet Root",
+                planetRoot,
+                typeof(ProceduralPlanetRoot),
+                true);
+
+            using (new EditorGUILayout.HorizontalScope())
             {
-                EditorGUILayout.HelpBox(
-                    "Create or assign a PlanetSettings asset. Phase 1 generation controls will appear here later.",
-                    MessageType.Info);
-                return;
+                if (GUILayout.Button("Create / Find Planet Root", GUILayout.Height(30)))
+                    CreateOrFindPlanetRoot();
+
+                GUI.enabled = planetRoot != null;
+                if (GUILayout.Button("Frame Planet", GUILayout.Height(30)))
+                    FramePlanet();
+                GUI.enabled = true;
             }
 
-            DrawSettingsInspector();
+            EditorGUILayout.Space(8);
 
-            EditorGUILayout.Space(16);
-            EditorGUILayout.LabelField("Phase 0 Status", EditorStyles.boldLabel);
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                GUI.enabled = settings != null;
 
-            DrawStatus("Settings Asset", true);
-            DrawStatus("Custom World Creator Window", true);
-            DrawStatus("Planet Mesh Generator", false);
-            DrawStatus("Streaming", false);
+                if (GUILayout.Button("Generate Planet", GUILayout.Height(38)))
+                {
+                    CreateOrFindPlanetRoot();
+                    planetRoot.Settings = settings;
+                    planetRoot.Generate();
+                    Selection.activeGameObject = planetRoot.gameObject;
+                }
 
-            EditorGUILayout.Space(10);
+                GUI.enabled = planetRoot != null;
+
+                if (GUILayout.Button("Clear Planet", GUILayout.Height(38)))
+                    planetRoot.ClearGeneratedFaces();
+
+                GUI.enabled = true;
+            }
+
+            EditorGUILayout.Space(14);
+            EditorGUILayout.LabelField("Phase Progress", EditorStyles.boldLabel);
+
+            DrawStatus("Phase 0 — Foundation", true);
+            DrawStatus("Phase 1 — Cube-Sphere", planetRoot != null && planetRoot.transform.childCount == 6);
+            DrawStatus("Phase 2 — Fly Camera + Streaming", false);
+
+            EditorGUILayout.Space(8);
             EditorGUILayout.HelpBox(
-                "Phase 0 intentionally does not generate terrain. Approve the foundation first, then Phase 1 adds the cube-sphere generator.",
+                "Phase 1 is greybox only. Terrain shaping, stylized biomes, forests and Albion-like readability arrive in later approved phases.",
                 MessageType.None);
         }
 
         private void DrawHeader()
         {
-            EditorGUILayout.LabelField(
-                "PROCEDURAL PLANET — WORLD CREATOR",
-                EditorStyles.boldLabel);
-
+            EditorGUILayout.LabelField("PROCEDURAL PLANET — WORLD CREATOR", EditorStyles.boldLabel);
             EditorGUILayout.LabelField(
                 $"Generator Version: {WorldGenerationVersion.Current}",
                 EditorStyles.miniLabel);
@@ -100,10 +130,36 @@ namespace ProceduralPlanet.Editor
             EditorGUILayout.EndVertical();
         }
 
+        private void CreateOrFindPlanetRoot()
+        {
+            if (planetRoot == null)
+                planetRoot = FindFirstObjectByType<ProceduralPlanetRoot>();
+
+            if (planetRoot == null)
+            {
+                var go = new GameObject("Procedural Planet");
+                Undo.RegisterCreatedObjectUndo(go, "Create Procedural Planet");
+                planetRoot = go.AddComponent<ProceduralPlanetRoot>();
+            }
+
+            if (settings != null)
+                planetRoot.Settings = settings;
+
+            Selection.activeGameObject = planetRoot.gameObject;
+        }
+
+        private void FramePlanet()
+        {
+            if (planetRoot == null)
+                return;
+
+            Selection.activeGameObject = planetRoot.gameObject;
+            SceneView.lastActiveSceneView?.FrameSelected();
+        }
+
         private static void DrawStatus(string label, bool complete)
         {
-            var icon = complete ? "✓" : "○";
-            EditorGUILayout.LabelField($"{icon} {label}");
+            EditorGUILayout.LabelField($"{(complete ? "✓" : "○")} {label}");
         }
 
         private void CreateSettingsAsset()
@@ -112,7 +168,7 @@ namespace ProceduralPlanet.Editor
                 "Create Planet Settings",
                 "PlanetSettings",
                 "asset",
-                "Choose where to save the PlanetSettings asset.");
+                "Choose where to save PlanetSettings.");
 
             if (string.IsNullOrEmpty(path))
                 return;
