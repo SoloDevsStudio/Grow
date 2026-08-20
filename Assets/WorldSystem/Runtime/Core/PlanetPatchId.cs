@@ -10,7 +10,11 @@ namespace ProceduralPlanet
         public int X;
         public int Y;
 
-        public PlanetPatchId(PlanetFace face, int level, int x, int y)
+        public PlanetPatchId(
+            PlanetFace face,
+            int level,
+            int x,
+            int y)
         {
             Face = face;
             Level = level;

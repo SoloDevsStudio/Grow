@@ -18,9 +18,21 @@ MonoBehaviour:
   baseResolution: 32
   maxTerrainHeight: 25
   previewMaterial: {fileID: 0}
-  generateColliders: 1
-  patchResolution: 16
-  preloadRing: 1
-  streamDistance: 500
+  patchesPerFace: 8
+  patchResolution: 12
+  autoScaleStreaming: 1
+  autoVisibleRadiusMultiplier: 3.2
+  autoPreloadRadiusMultiplier: 3.8
+  autoUnloadRadiusMultiplier: 4.5
+  visibleDistance: 250
+  preloadDistance: 330
+  unloadDistance: 380
+  streamUpdateInterval: 0.1
+  maxPatchCreatesPerUpdate: 16
+  generatePatchColliders: 0
+  cameraFitMargin: 1.15
+  flyMoveSpeed: 80
+  flyBoostMultiplier: 4
+  flyLookSensitivity: 0.12
   showPatchBounds: 1
   showPatchIds: 0
